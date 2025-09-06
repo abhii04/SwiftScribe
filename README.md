@@ -94,9 +94,5 @@ It **fetches, filters, prioritizes, analyzes, and responds** to queries while pr
 
 ---
 
-## 📄 License
-MIT License (or your choice).  
-
----
 
 SwiftScribe empowers teams to **reply faster, smarter, and more empathetically** — transforming customer support efficiency and satisfaction.
