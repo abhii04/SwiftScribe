@@ -1,30 +1,102 @@
-# AI communication assistant
+# ✨ SwiftScribe – AI-Powered Communication Assistant
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+**SwiftScribe** is an end-to-end AI assistant that intelligently manages customer support emails.  
+It **fetches, filters, prioritizes, analyzes, and responds** to queries while presenting everything on a **clean, interactive dashboard** for human-in-the-loop review.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/abhilashshinde4-gmailcoms-projects/v0-ai-communication-assistant)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/5vt5dkDSOYe)
+---
 
-## Overview
+## 🚀 Features
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+### 📥 Email Retrieval & Filtering
+- Connect Gmail/Outlook via OAuth.
+- Automatically fetch new emails containing **Support**, **Query**, **Request**, or **Help**.
+- Store sender, subject, body, and timestamp securely in Supabase.
 
-## Deployment
+### 🎯 Categorization & Prioritization
+- **Sentiment analysis** (via Gemini): Positive, Neutral, Negative.
+- **Priority detection**: Urgent vs Not Urgent (keywords like *immediately*, *critical*, *cannot access*).
+- Urgent messages float to the top via a **priority queue**.
 
-Your project is live at:
+### 🔍 Information Extraction
+- Pulls contact details: phone numbers, alternate emails.
+- Detects customer intent, requirements, and product mentions.
+- Extracts order IDs and metadata useful for routing.
+- Confidence scoring with highlights for quick agent validation.
 
-**[https://vercel.com/abhilashshinde4-gmailcoms-projects/v0-ai-communication-assistant](https://vercel.com/abhilashshinde4-gmailcoms-projects/v0-ai-communication-assistant)**
+### 🤖 AI-Generated Draft Replies
+- Drafted using **Gemini API**.
+- **RAG integration** with Supabase Vector to reference internal knowledge base.
+- Replies are:
+  - Context-aware and professional.
+  - Empathetic if frustration is detected.
+  - Specific, referencing products/orders.
+  - Actionable: 1–3 clear steps or resolution path.
+- Urgent tickets are drafted first.
 
-## Build your app
+### 📊 Dashboard & Analytics
+- **Inbox View**
+  - Sort by urgency, filter by sentiment/priority/date.
+  - Status badges: pending, drafted, sent.
+- **Email Detail View**
+  - Shows raw email, extracted info, and suggested reply.
+  - Reply editor with “Send” button → sends via Gmail/Outlook.
+- **Analytics**
+  - KPIs: total emails (24h), resolved, pending, average response time.
+  - Charts: sentiment distribution, urgent vs non-urgent mix, SLA breaches, trend over time.
 
-Continue building your app on:
+---
 
-**[https://v0.app/chat/projects/5vt5dkDSOYe](https://v0.app/chat/projects/5vt5dkDSOYe)**
+## 🏗 Architecture
 
-## How It Works
+- **Supabase**
+  - Auth (Google/Microsoft).
+  - Postgres + pgvector (email storage + knowledge base embeddings).
+  - Storage (attachments, raw email HTML, KB docs).
+  - Edge Functions (email sync, reply sending, scheduled jobs).
+- **Gemini API**
+  - Sentiment classification.
+  - Structured information extraction.
+  - RAG-based reply drafting.
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+**Flow:**
+1. Fetch & filter support emails.  
+2. Store in Supabase → process with Edge Functions.  
+3. Run Gemini pipeline: sentiment → priority → entity extraction → draft reply.  
+4. Serve results to dashboard → agent reviews → edits → sends.  
+5. Store replies, update analytics, and improve knowledge base.
+
+---
+
+## 🔐 Security & Privacy
+- OAuth-based secure access to email providers.
+- Tokens stored securely in Supabase (encrypted).
+- Row-Level Security for user-specific data.
+- No sensitive data logged; optional PII redaction for compliance.
+
+---
+
+## 🧪 Demo Flow
+1. Connect Gmail/Outlook.  
+2. SwiftScribe fetches incoming support queries.  
+3. Dashboard shows prioritized inbox.  
+4. Agent opens an urgent ticket → sees extracted info + AI draft reply.  
+5. Agent edits reply → clicks **Send**.  
+6. Dashboard + analytics update in real-time.  
+
+---
+
+## 🗺 Roadmap
+- Multi-language support with auto-translation.  
+- SLA-based escalation workflows.  
+- Integration with CRMs (Zendesk, Salesforce).  
+- CSAT tracking + feedback loops.  
+- Fine-tuned domain-specific classifiers.  
+
+---
+
+## 📄 License
+MIT License (or your choice).  
+
+---
+
+SwiftScribe empowers teams to **reply faster, smarter, and more empathetically** — transforming customer support efficiency and satisfaction.
