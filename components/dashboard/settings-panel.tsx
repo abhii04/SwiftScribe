@@ -24,8 +24,11 @@ import {
   Smartphone,
   CheckCircle2,
   AlertTriangle,
+  Cpu
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useSettings } from "@/hooks/useSupabaseData"
+import React, { useEffect } from "react"
 
 interface SettingsSection {
   id: string
@@ -37,50 +40,50 @@ interface SettingsSection {
 const settingsSections: SettingsSection[] = [
   {
     id: "profile",
-    title: "Profile Settings",
-    description: "Manage your personal information and preferences",
+    title: "Identity Protocol",
+    description: "Manage your cryptographic personal configuration",
     icon: User,
   },
   {
     id: "email",
-    title: "Email Accounts",
-    description: "Connect and manage your email integrations",
+    title: "Network Relays",
+    description: "Connect and audit external routing nodes",
     icon: Mail,
   },
   {
     id: "ai",
-    title: "AI Configuration",
-    description: "Customize AI behavior and response settings",
-    icon: Zap,
+    title: "Consensus Engine",
+    description: "Customize algorithmic validation strictness",
+    icon: Cpu,
   },
   {
     id: "notifications",
-    title: "Notifications",
-    description: "Configure alerts and notification preferences",
+    title: "Event Triggers",
+    description: "Configure system alerts and telemetry",
     icon: Bell,
   },
   {
     id: "security",
-    title: "Security & Privacy",
-    description: "Manage your account security and privacy settings",
+    title: "Security Layers",
+    description: "Manage 2FA and cryptographic boundaries",
     icon: Shield,
   },
   {
     id: "appearance",
-    title: "Appearance",
-    description: "Customize the look and feel of your dashboard",
+    title: "Terminal Interface",
+    description: "Customize visualization aesthetics",
     icon: Palette,
   },
   {
     id: "integrations",
-    title: "API & Integrations",
-    description: "Manage third-party integrations and API keys",
+    title: "API Bindings",
+    description: "Manage REST access and token generation",
     icon: Key,
   },
   {
     id: "data",
-    title: "Data Management",
-    description: "Export, import, and manage your data",
+    title: "Immutable Records",
+    description: "Export full block transitions",
     icon: Download,
   },
 ]
@@ -88,69 +91,94 @@ const settingsSections: SettingsSection[] = [
 export function SettingsPanel() {
   const [activeSection, setActiveSection] = useState("profile")
   const [showPassword, setShowPassword] = useState(false)
+  const { settings, isLoading, saveSettings } = useSettings()
+
   const [profileData, setProfileData] = useState({
-    fullName: "Alex Chen",
-    email: "alex@company.com",
-    role: "Senior Support Manager",
+    fullName: "Current User",
+    email: "user@example.com",
+    role: "User",
     timezone: "America/New_York",
   })
 
+  // Synchronize db settings with local state
+  useEffect(() => {
+    if (settings) {
+      setProfileData({
+        fullName: settings.display_name || "",
+        email: "user@example.com", // Assuming fetched from auth later
+        role: "User",
+        timezone: "America/New_York", // Extend DB for these later
+      })
+    }
+  }, [settings])
+
+  const handleSaveChanges = async () => {
+    try {
+       await saveSettings({
+         display_name: profileData.fullName,
+       });
+       alert("Configuration Transmitted!");
+    } catch (e) {
+       console.error("Failed to save settings", e);
+    }
+  }
+
   const renderProfileSettings = () => (
     <div className="space-y-6">
-      <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Personal Information</h3>
-        <div className="flex items-center gap-6 mb-6">
-          <Avatar className="w-20 h-20">
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl">
+      <div className="crypto-glass-block">
+        <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest mb-6">Identity Registry</h3>
+        <div className="flex items-center gap-6 mb-8 border-b border-math pb-6">
+          <Avatar className="w-20 h-20 border border-[#F7931A]">
+            <AvatarFallback className="bg-gradient-to-br from-[#EA580C] to-[#FFD600] text-black text-xl font-heading font-bold shadow-bitcoin-primary">
               AC
             </AvatarFallback>
           </Avatar>
-          <div className="space-y-2">
-            <Button variant="outline" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
+          <div className="space-y-3">
+            <Button variant="outline" className="font-heading uppercase tracking-widest text-[#94A3B8] border-math bg-transparent hover:border-[#F7931A] hover:text-[#F7931A] text-xs">
               <Upload className="w-4 h-4 mr-2" />
-              Upload Photo
+              Upload Hash
             </Button>
-            <p className="text-xs text-slate-500 dark:text-slate-400">JPG, PNG up to 2MB</p>
+            <p className="font-mono text-[10px] text-[#94A3B8] uppercase tracking-widest">PNG, JPG 2MB Limit</p>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">Display Alias</label>
             <Input
               value={profileData.fullName}
               onChange={(e) => setProfileData({ ...profileData, fullName: e.target.value })}
-              className="glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+              className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">Contact Protocol</label>
             <Input
               value={profileData.email}
               onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-              className="glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+              className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Role</label>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">Clearance Level</label>
             <Input
               value={profileData.role}
               onChange={(e) => setProfileData({ ...profileData, role: e.target.value })}
-              className="glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+              className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Timezone</label>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">Temporal Node</label>
             <select
               value={profileData.timezone}
               onChange={(e) => setProfileData({ ...profileData, timezone: e.target.value })}
-              className="w-full px-3 py-2 glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200 rounded-md text-slate-900 dark:text-white"
+              className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono outline-none"
             >
-              <option value="America/New_York">Eastern Time (ET)</option>
-              <option value="America/Chicago">Central Time (CT)</option>
-              <option value="America/Denver">Mountain Time (MT)</option>
-              <option value="America/Los_Angeles">Pacific Time (PT)</option>
-              <option value="Europe/London">London (GMT)</option>
-              <option value="Europe/Paris">Paris (CET)</option>
+              <option value="America/New_York" className="bg-[#0F1115]">Eastern Time (ET)</option>
+              <option value="America/Chicago" className="bg-[#0F1115]">Central Time (CT)</option>
+              <option value="America/Denver" className="bg-[#0F1115]">Mountain Time (MT)</option>
+              <option value="America/Los_Angeles" className="bg-[#0F1115]">Pacific Time (PT)</option>
+              <option value="Europe/London" className="bg-[#0F1115]">London (GMT)</option>
+              <option value="Europe/Paris" className="bg-[#0F1115]">Paris (CET)</option>
             </select>
           </div>
         </div>
@@ -160,51 +188,51 @@ export function SettingsPanel() {
 
   const renderEmailSettings = () => (
     <div className="space-y-6">
-      <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Connected Email Accounts</h3>
-          <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+      <div className="crypto-glass-block">
+        <div className="flex items-center justify-between mb-6 border-b border-math pb-4">
+          <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest">Network Nodes</h3>
+          <Button className="font-heading tracking-wider uppercase font-bold rounded-full bg-gradient-to-r from-[#EA580C] to-[#F7931A] text-white shadow-bitcoin-primary hover:shadow-bitcoin-primary-hover hover:scale-105 transition-all duration-300 border-0 text-xs px-4 h-9">
             <Plus className="w-4 h-4 mr-2" />
-            Add Account
+            Add Node
           </Button>
         </div>
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
+          <div className="flex items-center justify-between p-4 bg-black/30 border border-math hover:border-[#F7931A]/50 transition-colors">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-[#ea4335]/20 border border-[#ea4335]/50 rounded-lg flex items-center justify-center">
+                <Mail className="w-5 h-5 text-[#ea4335]" />
               </div>
               <div>
-                <h4 className="font-medium text-slate-900 dark:text-white">Gmail</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-400">support@company.com</p>
+                <h4 className="font-heading font-medium text-white tracking-widest uppercase">Gmail Server</h4>
+                <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-1">support@company.com</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs border-green-500/30 text-green-600 dark:text-green-400">
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-widest border-[#FFD600]/30 text-[#FFD600] rounded-sm">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                Connected
+                Active
               </Badge>
-              <Button variant="ghost" size="sm" className="hover:glass hover:bg-white/10">
+              <Button variant="ghost" size="sm" className="text-[#94A3B8] hover:text-red-500 hover:bg-transparent px-2">
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </div>
-          <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
+          <div className="flex items-center justify-between p-4 bg-black/30 border border-math hover:border-[#F7931A]/50 transition-colors">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-[#0078d4]/20 border border-[#0078d4]/50 rounded-lg flex items-center justify-center">
+                <Mail className="w-5 h-5 text-[#0078d4]" />
               </div>
               <div>
-                <h4 className="font-medium text-slate-900 dark:text-white">Outlook</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-400">alex@company.com</p>
+                <h4 className="font-heading font-medium text-white tracking-widest uppercase">Outlook Server</h4>
+                <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-1">alex@company.com</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs border-yellow-500/30 text-yellow-600 dark:text-yellow-400">
+            <div className="flex items-center gap-4">
+              <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-widest border-red-500/30 text-red-500 rounded-sm bg-red-900/20">
                 <AlertTriangle className="w-3 h-3 mr-1" />
-                Needs Auth
+                Sync Failed
               </Badge>
-              <Button variant="ghost" size="sm" className="hover:glass hover:bg-white/10">
+              <Button variant="ghost" size="sm" className="text-[#94A3B8] hover:text-red-500 hover:bg-transparent px-2">
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>
@@ -216,12 +244,12 @@ export function SettingsPanel() {
 
   const renderAISettings = () => (
     <div className="space-y-6">
-      <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">AI Response Configuration</h3>
-        <div className="space-y-4">
+      <div className="crypto-glass-block">
+        <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest mb-6 border-b border-math pb-4">Consensus Strictness</h3>
+        <div className="space-y-8">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Minimum Confidence Threshold
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-4">
+              Confidence Weight Matrix
             </label>
             <div className="flex items-center gap-4">
               <input
@@ -229,40 +257,22 @@ export function SettingsPanel() {
                 min="0"
                 max="100"
                 defaultValue="80"
-                className="flex-1 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
+                className="flex-1 h-1 bg-[#1E293B] appearance-none cursor-pointer accent-[#F7931A]"
               />
-              <span className="text-sm font-medium text-slate-900 dark:text-white w-12">80%</span>
+              <span className="font-mono text-xs text-[#FFD600] w-12 font-bold shadow-gold-accent bg-[#FFD600]/10 px-2 flex justify-center py-1">80%</span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              AI responses below this confidence level will be flagged for review
+            <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-4 opacity-50">
+               Threshold validation determines automated drafting availability
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Response Tone</label>
-            <select className="w-full px-3 py-2 glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200 rounded-md text-slate-900 dark:text-white">
-              <option value="professional">Professional</option>
-              <option value="friendly">Friendly</option>
-              <option value="formal">Formal</option>
-              <option value="casual">Casual</option>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-4">Semantic Target Range</label>
+            <select className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:outline-none focus:ring-0 font-mono outline-none">
+              <option value="professional" className="bg-[#0F1115]">Strict Formal</option>
+              <option value="friendly" className="bg-[#0F1115]">Optimistic Casual</option>
+              <option value="formal" className="bg-[#0F1115]">Corporate Protocol</option>
+              <option value="casual" className="bg-[#0F1115]">Loosely Structured</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Auto-send Threshold
-            </label>
-            <div className="flex items-center gap-4">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                defaultValue="95"
-                className="flex-1 h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-              />
-              <span className="text-sm font-medium text-slate-900 dark:text-white w-12">95%</span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Responses above this confidence level can be sent automatically
-            </p>
           </div>
         </div>
       </div>
@@ -271,63 +281,63 @@ export function SettingsPanel() {
 
   const renderSecuritySettings = () => (
     <div className="space-y-6">
-      <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-        <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-4">Password & Authentication</h3>
-        <div className="space-y-4">
+      <div className="crypto-glass-block">
+        <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest mb-6 border-b border-math pb-4">Cryptographic Layer</h3>
+        <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Current Password
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">
+              Current Cipherkey
             </label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter current password"
-                className="pr-10 glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+                placeholder="Enter current block cipher"
+                className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#94A3B8] hover:text-white"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">New Password</label>
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">New Cipherkey Sequence</label>
             <Input
               type="password"
-              placeholder="Enter new password"
-              className="glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+              placeholder="Generate new sequence"
+              className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Confirm New Password
+            <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">
+              Validate Cipherkey Sequence
             </label>
             <Input
               type="password"
-              placeholder="Confirm new password"
-              className="glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+              placeholder="Re-enter sequence"
+              className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono"
             />
           </div>
         </div>
       </div>
 
-      <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Two-Factor Authentication</h3>
-        <div className="flex items-center justify-between p-4 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm">
+      <div className="crypto-glass-block">
+        <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest mb-6 border-b border-math pb-4">Multi-factor Shielding</h3>
+        <div className="flex items-center justify-between p-4 bg-black/30 border border-math hover:border-[#F7931A]/50 transition-colors">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-              <Smartphone className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-[#FFD600]/20 border border-[#FFD600]/50 rounded-lg flex items-center justify-center">
+              <Smartphone className="w-5 h-5 text-[#FFD600]" />
             </div>
             <div>
-              <h4 className="font-medium text-slate-900 dark:text-white">Authenticator App</h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400">Use an authenticator app for 2FA</p>
+              <h4 className="font-heading font-medium text-white tracking-widest uppercase">TOTP Protocol Active</h4>
+              <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-1">Requires hardware device</p>
             </div>
           </div>
-          <Button variant="outline" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-            Enable
+          <Button variant="outline" className="font-heading tracking-widest uppercase text-[10px] border border-[#F7931A]/50 bg-[#F7931A]/10 text-[#F7931A] hover:bg-[#F7931A]/20">
+            Initialize 2FA
           </Button>
         </div>
       </div>
@@ -349,12 +359,12 @@ export function SettingsPanel() {
       case "integrations":
       case "data":
         return (
-          <div className="glass-card p-8 rounded-xl border-0 shadow-lg text-center">
-            <Settings className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-              {settingsSections.find((s) => s.id === activeSection)?.title}
+          <div className="crypto-glass-block text-center flex flex-col items-center justify-center py-20">
+            <Settings className="w-12 h-12 text-[#1E293B] mb-6 animate-[spin_20s_linear_infinite]" />
+            <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest mb-2">
+              {settingsSections.find((s) => s.id === activeSection)?.title} Uninitialized
             </h3>
-            <p className="text-slate-600 dark:text-slate-400">This section is coming soon...</p>
+            <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase">Module pending next block update...</p>
           </div>
         )
       default:
@@ -363,52 +373,50 @@ export function SettingsPanel() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
-      <div className="glass-nav p-6 border-b border-white/10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-              Settings
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
-              Manage your account, preferences, and system configuration
-            </p>
-          </div>
-          <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
-          </Button>
+    <div className="flex-1 flex flex-col h-screen font-body relative overflow-hidden">
+      <div className="bg-[#0F1115] p-6 border-b border-math z-10 flex items-center justify-between relative overflow-hidden">
+        <div className="relative z-10">
+          <h1 className="text-3xl font-heading font-bold text-white capitalize tracking-wide bg-gradient-to-r from-[#EA580C] to-[#F7931A] bg-clip-text text-transparent">
+            System State
+          </h1>
+          <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-2">
+            Configure local node directives and bounds
+          </p>
         </div>
+        <Button onClick={handleSaveChanges} className="font-heading tracking-wider uppercase font-bold rounded-full bg-gradient-to-r from-[#EA580C] to-[#F7931A] text-white shadow-bitcoin-primary hover:shadow-bitcoin-primary-hover hover:scale-105 transition-all duration-300 border-0 z-10 text-xs px-6">
+          <Save className="w-4 h-4 mr-2" />
+          {isLoading ? "Syncing..." : "Commit Changes"}
+        </Button>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden z-10">
         {/* Settings Navigation */}
-        <div className="w-80 glass-sidebar border-r border-white/10 p-6 overflow-y-auto">
+        <div className="w-80 bg-[#030304] border-r border-math p-6 overflow-y-auto">
           <nav className="space-y-2">
             {settingsSections.map((section) => (
               <button
                 key={section.id}
                 onClick={() => setActiveSection(section.id)}
                 className={cn(
-                  "w-full flex items-start gap-4 p-4 rounded-lg text-left transition-all duration-200",
+                  "w-full flex items-start gap-4 p-4 rounded-lg text-left transition-all duration-300 border border-transparent",
                   activeSection === section.id
-                    ? "glass bg-white/20 text-slate-900 dark:text-white shadow-lg"
-                    : "text-slate-600 dark:text-slate-400 hover:glass hover:bg-white/10",
+                    ? "bg-[#EA580C]/10 border-[#F7931A]/30 shadow-[inset_2px_0_0_#F7931A]"
+                    : "hover:bg-[#0F1115] hover:border-white/10",
                 )}
               >
                 <div
                   className={cn(
-                    "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                    "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors duration-300",
                     activeSection === section.id
-                      ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white"
-                      : "bg-white/10 text-slate-500 dark:text-slate-400",
+                      ? "bg-[#F7931A]/20 border border-[#F7931A]/50 text-[#F7931A] shadow-gold-accent"
+                      : "bg-[#0F1115] border border-math text-[#94A3B8]",
                   )}
                 >
                   <section.icon className="w-5 h-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-medium text-sm mb-1">{section.title}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{section.description}</p>
+                  <h3 className={cn("font-heading font-medium text-xs tracking-wider uppercase mb-1", activeSection === section.id ? "text-white" : "text-[#94A3B8]")}>{section.title}</h3>
+                  <p className="font-mono text-[9px] text-[#94A3B8]/70 uppercase tracking-wider">{section.description}</p>
                 </div>
               </button>
             ))}
@@ -416,7 +424,7 @@ export function SettingsPanel() {
         </div>
 
         {/* Settings Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-8 relative">
           <div className="max-w-4xl mx-auto">{renderContent()}</div>
         </div>
       </div>

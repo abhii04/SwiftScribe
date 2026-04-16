@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { EmailDetail } from "./email-detail"
+import { useEmails } from "@/hooks/useSupabaseData"
 import {
   Search,
   Filter,
@@ -17,104 +18,9 @@ import {
   Clock,
   CheckCircle2,
   User,
+  Zap,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-interface Email {
-  id: string
-  sender: string
-  senderEmail: string
-  subject: string
-  preview: string
-  timestamp: string
-  priority: "low" | "medium" | "high" | "urgent"
-  category: "general" | "technical" | "billing" | "sales" | "complaint"
-  status: "unread" | "read" | "responded" | "archived"
-  isStarred: boolean
-  aiSummary?: string
-  confidenceScore?: number
-}
-
-// Mock data for demonstration
-const mockEmails: Email[] = [
-  {
-    id: "1",
-    sender: "Sarah Johnson",
-    senderEmail: "sarah@techcorp.com",
-    subject: "Urgent: Server downtime affecting production",
-    preview:
-      "We're experiencing critical server issues that are impacting our production environment. The main database server went down at 2:30 PM EST...",
-    timestamp: "2 min ago",
-    priority: "urgent",
-    category: "technical",
-    status: "unread",
-    isStarred: true,
-    aiSummary:
-      "Critical server outage requiring immediate attention. Database server failure at 2:30 PM EST affecting production.",
-    confidenceScore: 0.95,
-  },
-  {
-    id: "2",
-    sender: "Mike Chen",
-    senderEmail: "mike@startup.io",
-    subject: "Question about API integration pricing",
-    preview:
-      "Hi there! I'm interested in integrating your API into our platform. Could you provide more details about the pricing structure for enterprise...",
-    timestamp: "15 min ago",
-    priority: "high",
-    category: "sales",
-    status: "unread",
-    isStarred: false,
-    aiSummary: "Sales inquiry about API integration pricing for enterprise use. Potential high-value customer.",
-    confidenceScore: 0.88,
-  },
-  {
-    id: "3",
-    sender: "Emma Wilson",
-    senderEmail: "emma@design.co",
-    subject: "Thank you for the quick resolution!",
-    preview:
-      "I wanted to reach out and thank your team for the incredibly fast response to our support ticket. The issue was resolved within hours...",
-    timestamp: "1 hour ago",
-    priority: "low",
-    category: "general",
-    status: "read",
-    isStarred: false,
-    aiSummary: "Positive feedback thanking team for quick support resolution. Customer satisfaction confirmation.",
-    confidenceScore: 0.92,
-  },
-  {
-    id: "4",
-    sender: "David Rodriguez",
-    senderEmail: "david@finance.com",
-    subject: "Billing discrepancy - Invoice #INV-2024-001",
-    preview:
-      "I've noticed a discrepancy in our latest invoice. The amount charged doesn't match our agreed-upon pricing structure...",
-    timestamp: "3 hours ago",
-    priority: "medium",
-    category: "billing",
-    status: "responded",
-    isStarred: false,
-    aiSummary:
-      "Billing inquiry about invoice discrepancy. Requires review of pricing agreement and invoice correction.",
-    confidenceScore: 0.91,
-  },
-  {
-    id: "5",
-    sender: "Lisa Park",
-    senderEmail: "lisa@marketing.agency",
-    subject: "Partnership opportunity discussion",
-    preview:
-      "We're a growing marketing agency and would love to explore potential partnership opportunities with your company...",
-    timestamp: "5 hours ago",
-    priority: "medium",
-    category: "sales",
-    status: "read",
-    isStarred: true,
-    aiSummary: "Partnership inquiry from marketing agency. Potential business development opportunity.",
-    confidenceScore: 0.85,
-  },
-]
 
 interface EmailListProps {
   activeView: string
@@ -122,43 +28,51 @@ interface EmailListProps {
 
 export function EmailList({ activeView }: EmailListProps) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedEmails, setSelectedEmails] = useState<string[]>([])
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null)
+  
+  const { emails: fetchedEmails, isLoading } = useEmails(activeView)
+
+  // Filter based on search query
+  const emails = fetchedEmails.filter((e: any) => 
+    e.subject?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    e.sender?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    e.preview?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-red-500"
+        return "bg-red-900 border border-red-500 text-red-500"
       case "high":
-        return "bg-orange-500"
+        return "bg-[#EA580C]/20 border border-[#EA580C] text-[#EA580C]"
       case "medium":
-        return "bg-yellow-500"
+        return "bg-[#FFD600]/20 border border-[#FFD600] text-[#FFD600]"
       case "low":
-        return "bg-green-500"
+        return "bg-emerald-900 border border-emerald-500 text-emerald-500"
       default:
-        return "bg-gray-500"
+        return "bg-[#1E293B] border border-white/20 text-[#94A3B8]"
     }
   }
 
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "technical":
-        return "bg-blue-500"
+        return "text-[#F7931A]"
       case "billing":
-        return "bg-purple-500"
+        return "text-[#FFD600]"
       case "sales":
-        return "bg-emerald-500"
+        return "text-emerald-400"
       case "complaint":
-        return "bg-red-500"
+        return "text-red-400"
       default:
-        return "bg-gray-500"
+        return "text-slate-400"
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "unread":
-        return <Clock className="w-3 h-3" />
+        return <Clock className="w-3 h-3 text-[10px]" />
       case "responded":
         return <CheckCircle2 className="w-3 h-3" />
       case "archived":
@@ -173,118 +87,124 @@ export function EmailList({ activeView }: EmailListProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
-      <div className="glass-nav p-4 border-b border-white/10">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white capitalize">{activeView}</h1>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
+    <div className="flex-1 flex flex-col h-screen font-body relative overflow-hidden">
+      
+      <div className="bg-[#0F1115] p-6 border-b border-math z-10">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-heading font-bold text-white capitalize tracking-wide">{activeView}</h1>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" className="font-heading uppercase tracking-widest text-[#94A3B8] border-math bg-transparent hover:text-white hover:border-[#F7931A]">
               <Filter className="w-4 h-4 mr-2" />
               Filter
             </Button>
-            <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
+            <Button variant="outline" size="sm" className="font-heading text-[#94A3B8] border-math bg-transparent hover:text-white hover:border-[#F7931A]">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
           <Input
-            placeholder="Search emails..."
+            placeholder="Search blocks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+            className="pl-8 bg-transparent border-0 border-b-2 border-white/20 rounded-none h-12 text-white placeholder:text-white/30 focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono text-sm uppercase tracking-widest"
           />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {mockEmails.map((email) => (
+      <div className="flex-1 overflow-y-auto p-6 space-y-4 z-10 relative">
+        {isLoading ? (
+          <div className="text-center p-8 font-mono text-[#94A3B8] uppercase tracking-widest flex items-center justify-center gap-2">
+            <Zap className="animate-pulse w-4 h-4 text-[#F7931A]"/> Extracting Data Blocks...
+          </div>
+        ) : emails.length === 0 ? (
+          <div className="text-center p-8 font-mono text-[#94A3B8] uppercase tracking-widest">No nodes found.</div>
+        ) : (
+          emails.map((email: any) => (
           <div
             key={email.id}
             className={cn(
-              "glass-card p-4 rounded-xl border-0 shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer",
-              email.status === "unread" && "bg-white/15 border-l-4 border-l-blue-500",
+              "crypto-block group cursor-pointer",
+              email.status === "unread" && "border-l-2 border-l-[#F7931A]",
             )}
             onClick={() => setSelectedEmailId(email.id)}
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                  <User className="w-5 h-5" />
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 border border-white/20 bg-black/40 rounded-lg flex items-center justify-center text-white">
+                  <User className="w-5 h-5 opacity-70" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-slate-900 dark:text-white">{email.sender}</h3>
-                    {email.isStarred && <Star className="w-4 h-4 text-yellow-500 fill-current" />}
+                    <h3 className="font-heading font-semibold text-white uppercase tracking-wider">{email.sender}</h3>
+                    {email.isStarred && <Star className="w-4 h-4 text-[#FFD600] drop-shadow-[0_0_5px_rgba(255,214,0,0.5)] fill-current" />}
                   </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{email.senderEmail}</p>
+                  <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase truncate max-w-[200px]">{email.senderEmail}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className={cn("text-xs text-white border-0", getPriorityColor(email.priority))}
-                >
-                  {email.priority}
-                </Badge>
-                <Badge
-                  variant="secondary"
-                  className={cn("text-xs text-white border-0", getCategoryColor(email.category))}
-                >
-                  {email.category}
-                </Badge>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{email.timestamp}</span>
+              <div className="flex flex-col items-end gap-2">
+                <span className="font-mono text-xs text-[#94A3B8] tracking-wider">
+                  {email.timestamp ? new Date(email.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false}) : ""}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className={cn("text-[10px] uppercase font-mono tracking-widest rounded-sm py-0.5", getPriorityColor(email.priority))}>
+                    {email.priority}
+                  </Badge>
+                </div>
               </div>
             </div>
 
-            <div className="mb-3">
-              <h4 className="font-medium text-slate-900 dark:text-white mb-1 text-balance">{email.subject}</h4>
-              <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 text-pretty">{email.preview}</p>
+            <div className="mb-4">
+              <h4 className="font-heading font-medium text-white mb-2 tracking-wide flex items-center gap-2">
+                 <span className={cn("text-[10px] uppercase font-mono tracking-widest", getCategoryColor(email.category))}>[{email.category}]</span> 
+                 {email.subject}
+              </h4>
+              <p className="text-sm text-[#94A3B8] font-body line-clamp-2">{email.preview}</p>
             </div>
 
             {email.aiSummary && (
-              <div className="mb-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                  </div>
-                  <span className="text-xs font-medium text-blue-700 dark:text-blue-300">AI Summary</span>
+              <div className="mb-4 p-4 border-math bg-black/30 backdrop-blur-sm relative overflow-hidden group-hover:border-[#EA580C]/30 transition-colors">
+                <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-[#F7931A] opacity-50"></div>
+                <div className="flex items-center gap-3 mb-2">
+                  <Zap className="w-4 h-4 text-[#F7931A]" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-[#F7931A]">AI Consensus Output</span>
                   {email.confidenceScore && (
-                    <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-600 dark:text-blue-400">
-                      {Math.round(email.confidenceScore * 100)}% confidence
-                    </Badge>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#FFD600] ml-auto">
+                      CONF: {Math.round(email.confidenceScore * 100)}%
+                    </span>
                   )}
                 </div>
-                <p className="text-sm text-blue-800 dark:text-blue-200 text-pretty">{email.aiSummary}</p>
+                <p className="text-sm text-[#94A3B8] font-body leading-relaxed">{email.aiSummary}</p>
               </div>
             )}
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between border-t border-math pt-3 mt-4">
+              <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#94A3B8]">
                 {getStatusIcon(email.status)}
-                <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{email.status}</span>
+                {email.status}
               </div>
 
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:glass hover:bg-white/10">
-                  <Reply className="w-3 h-3" />
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#94A3B8] hover:text-[#F7931A] hover:bg-transparent">
+                  <Reply className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:glass hover:bg-white/10">
-                  <Forward className="w-3 h-3" />
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#94A3B8] hover:text-[#FFD600] hover:bg-transparent">
+                  <Forward className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:glass hover:bg-white/10">
-                  <Archive className="w-3 h-3" />
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#94A3B8] hover:text-[#EA580C] hover:bg-transparent">
+                  <Archive className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:glass hover:bg-white/10">
-                  <Trash2 className="w-3 h-3" />
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#94A3B8] hover:text-red-500 hover:bg-transparent">
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
-          </div>
-        ))}
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

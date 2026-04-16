@@ -24,11 +24,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-400/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/3 right-1/3 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-[#030304] font-body text-white selection:bg-[#F7931A]/30">
+      <div className="absolute inset-0 overflow-hidden z-0">
+        <div className="absolute inset-0 bg-grid-pattern opacity-40"></div>
+        <div className="bg-radial-blur bg-[#EA580C] top-[-10%] left-[-10%]"></div>
+        <div className="bg-radial-blur bg-[#FFD600] bottom-[-20%] right-[-20%] opacity-5"></div>
       </div>
 
       <div className="relative z-10 flex h-screen">

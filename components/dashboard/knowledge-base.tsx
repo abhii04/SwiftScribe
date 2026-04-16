@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { Search, Plus, BookOpen, Edit3, Trash2, Eye, Tag, Calendar, User, FileText, Save, X, Hash } from "lucide-react"
+import { Search, Plus, BookOpen, Edit3, Trash2, Eye, Tag, Calendar, User, FileText, Save, X, Hash, Cpu } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface KnowledgeArticle {
@@ -21,105 +21,7 @@ interface KnowledgeArticle {
   views: number
 }
 
-// Mock knowledge base data
-const mockArticles: KnowledgeArticle[] = [
-  {
-    id: "1",
-    title: "How to Handle Server Outage Incidents",
-    content: `# Server Outage Response Protocol
-
-## Immediate Actions (First 15 minutes)
-1. Acknowledge the incident within 5 minutes
-2. Escalate to Level 3 support team
-3. Assign dedicated engineer
-4. Establish communication channel
-
-## Assessment Phase
-- Review server logs and monitoring data
-- Identify root cause
-- Estimate impact and affected users
-- Determine recovery timeline
-
-## Communication
-- Notify customers via status page
-- Send direct communication to enterprise clients
-- Provide regular updates every 30 minutes
-
-## Resolution Steps
-1. Implement immediate workarounds if available
-2. Execute recovery procedures
-3. Monitor system stability
-4. Conduct post-incident review`,
-    category: "Technical Support",
-    tags: ["server", "outage", "incident", "emergency"],
-    author: "Alex Chen",
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-20",
-    isActive: true,
-    views: 45,
-  },
-  {
-    id: "2",
-    title: "API Integration Pricing Guidelines",
-    content: `# API Integration Pricing Structure
-
-## Enterprise Tier
-- Up to 100,000 requests/month: $299/month
-- Up to 500,000 requests/month: $799/month
-- Up to 1,000,000 requests/month: $1,499/month
-- Custom enterprise solutions available
-
-## Features Included
-- 99.9% uptime SLA
-- Priority support
-- Custom rate limits
-- Dedicated account manager
-- Advanced analytics
-
-## Implementation Support
-- Free setup consultation (2 hours)
-- Technical integration support
-- Documentation and code samples
-- Testing environment access`,
-    category: "Sales",
-    tags: ["api", "pricing", "enterprise", "integration"],
-    author: "Sarah Johnson",
-    createdAt: "2024-01-10",
-    updatedAt: "2024-01-18",
-    isActive: true,
-    views: 32,
-  },
-  {
-    id: "3",
-    title: "Billing Dispute Resolution Process",
-    content: `# Billing Dispute Resolution
-
-## Initial Response (Within 24 hours)
-1. Acknowledge the dispute
-2. Request specific details about the discrepancy
-3. Provide case number for tracking
-4. Set expectations for resolution timeline
-
-## Investigation Process
-- Review billing records and usage data
-- Compare with customer's agreement terms
-- Identify any system errors or misunderstandings
-- Calculate correct charges if applicable
-
-## Resolution Options
-- Issue credit for overcharges
-- Adjust future billing if ongoing issue
-- Provide detailed explanation of charges
-- Offer payment plan if needed`,
-    category: "Billing",
-    tags: ["billing", "dispute", "refund", "process"],
-    author: "Mike Rodriguez",
-    createdAt: "2024-01-08",
-    updatedAt: "2024-01-16",
-    isActive: true,
-    views: 28,
-  },
-]
+import { useArticles } from "@/hooks/useSupabaseData"
 
 const categories = ["All", "Technical Support", "Sales", "Billing", "General", "Product"]
 
@@ -136,11 +38,13 @@ export function KnowledgeBase() {
     tagInput: "",
   })
 
-  const filteredArticles = mockArticles.filter((article) => {
+  const { articles, isLoading, addArticle, updateArticle, deleteArticle } = useArticles()
+
+  const filteredArticles = articles.filter((article: any) => {
     const matchesSearch =
-      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      article.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (article.tags || []).some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
     const matchesCategory = selectedCategory === "All" || article.category === selectedCategory
     return matchesSearch && matchesCategory
   })
@@ -162,85 +66,106 @@ export function KnowledgeBase() {
     })
   }
 
-  const handleSaveArticle = () => {
-    // In a real app, this would save to the database
-    console.log("Saving article:", newArticle)
-    setIsCreating(false)
-    setNewArticle({
-      title: "",
-      content: "",
-      category: "General",
-      tags: [],
-      tagInput: "",
-    })
+  const handleSaveArticle = async () => {
+    try {
+      if (editingArticle) {
+        await updateArticle(editingArticle.id, {
+          title: newArticle.title || editingArticle.title,
+          content: newArticle.content || editingArticle.content,
+          category: newArticle.category || editingArticle.category,
+          tags: newArticle.tags.length ? newArticle.tags : editingArticle.tags,
+          updated_at: new Date().toISOString()
+        })
+      } else {
+        await addArticle({
+          title: newArticle.title,
+          content: newArticle.content,
+          category: newArticle.category,
+          tags: newArticle.tags,
+          author: "Root Node" // Or fetch from auth
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsCreating(false)
+      setEditingArticle(null)
+      setNewArticle({
+        title: "",
+        content: "",
+        category: "General",
+        tags: [],
+        tagInput: "",
+      })
+    }
   }
 
   if (isCreating || editingArticle) {
     return (
-      <div className="flex-1 flex flex-col h-screen">
-        <div className="glass-nav p-6 border-b border-white/10">
+      <div className="flex-1 flex flex-col h-screen font-body relative overflow-hidden">
+        <div className="bg-[#0F1115] p-6 border-b border-math z-10">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                {isCreating ? "Create New Article" : "Edit Article"}
+              <h1 className="text-2xl font-bold font-heading uppercase text-white tracking-widest">
+                {isCreating ? "Construct Data Document" : "Modify Data Document"}
               </h1>
-              <p className="text-slate-600 dark:text-slate-400 mt-1">
-                {isCreating ? "Add new knowledge base content" : "Update existing article"}
+              <p className="font-mono text-[10px] text-[#94A3B8] uppercase tracking-widest mt-2">
+                {isCreating ? "Initialize new truth node" : "Overwrite existing sequence"}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <Button
                 variant="outline"
                 onClick={() => {
                   setIsCreating(false)
                   setEditingArticle(null)
                 }}
-                className="glass border-white/20 bg-white/10 backdrop-blur-sm"
+                className="font-heading uppercase tracking-widest text-[#94A3B8] border-math bg-transparent hover:border-white/40 hover:text-white text-xs h-[40px]"
               >
-                <X className="w-4 h-4 mr-2" />
-                Cancel
+                <X className="w-3 h-3 mr-2" />
+                Abort
               </Button>
               <Button
                 onClick={handleSaveArticle}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                className="font-heading tracking-wider uppercase font-bold rounded-full bg-gradient-to-r from-[#EA580C] to-[#F7931A] text-white shadow-bitcoin-primary hover:shadow-bitcoin-primary-hover hover:scale-105 transition-all duration-300 border-0 h-[40px] px-6"
               >
                 <Save className="w-4 h-4 mr-2" />
-                Save Article
+                Commit Block
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 z-10 relative">
           <div className="max-w-4xl mx-auto space-y-6">
-            <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-              <div className="space-y-4">
+            <div className="crypto-glass-block">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Article Title
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">
+                    Document Identifier
                   </label>
                   <Input
-                    placeholder="Enter article title..."
-                    value={newArticle.title}
+                    placeholder="Enter block title..."
+                    value={newArticle.title || (editingArticle?.title ?? "")}
                     onChange={(e) => setNewArticle({ ...newArticle, title: e.target.value })}
-                    className="glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+                    className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Category
+                    <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">
+                      Routing Tag
                     </label>
                     <select
-                      value={newArticle.category}
+                      value={newArticle.category || (editingArticle?.category ?? "General")}
                       onChange={(e) => setNewArticle({ ...newArticle, category: e.target.value })}
-                      className="w-full px-3 py-2 glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200 rounded-md text-slate-900 dark:text-white"
+                      className="w-full bg-black/50 border-0 border-b-2 border-white/20 h-10 px-4 py-2 text-white text-sm rounded-none focus-visible:border-[#F7931A] focus-visible:outline-none focus:ring-0 font-mono outline-none"
                     >
                       {categories
                         .filter((cat) => cat !== "All")
                         .map((category) => (
-                          <option key={category} value={category}>
+                          <option key={category} value={category} className="bg-[#0F1115]">
                             {category}
                           </option>
                         ))}
@@ -248,53 +173,53 @@ export function KnowledgeBase() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tags</label>
-                    <div className="flex gap-2">
+                    <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2">Metadata Hash</label>
+                    <div className="flex gap-2 items-center border-b-2 border-white/20 focus-within:border-[#F7931A] bg-black/50 h-10 transition-colors">
                       <Input
                         placeholder="Add tag..."
                         value={newArticle.tagInput}
                         onChange={(e) => setNewArticle({ ...newArticle, tagInput: e.target.value })}
                         onKeyPress={(e) => e.key === "Enter" && handleAddTag()}
-                        className="glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+                        className="bg-transparent border-0 ring-0 focus-visible:ring-0 focus-visible:outline-none focus:ring-0 text-white font-mono text-xs w-full"
                       />
                       <Button
                         type="button"
                         onClick={handleAddTag}
-                        variant="outline"
-                        className="glass border-white/20 bg-white/10 backdrop-blur-sm"
+                        variant="ghost"
+                        className="text-[#94A3B8] hover:text-[#F7931A] h-full rounded-none"
                       >
                         <Hash className="w-4 h-4" />
                       </Button>
                     </div>
-                    {newArticle.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {newArticle.tags.map((tag) => (
-                          <Badge
-                            key={tag}
-                            variant="secondary"
-                            className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-0"
-                          >
-                            {tag}
-                            <button onClick={() => handleRemoveTag(tag)} className="ml-1 hover:text-red-500">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
+                    {((newArticle.tags.length > 0 ? newArticle.tags : editingArticle?.tags) || []).filter(Boolean).length > 0 && (
+                       <div className="flex flex-wrap gap-2 mt-4">
+                         {((newArticle.tags.length > 0 ? newArticle.tags : editingArticle?.tags) || []).map((tag: string) => (
+                           <Badge
+                             key={tag}
+                             variant="outline"
+                             className="bg-blue-900/20 text-blue-400 border border-blue-500 font-mono tracking-widest uppercase text-[10px]"
+                           >
+                             {tag}
+                             <button onClick={() => handleRemoveTag(tag)} className="ml-2 hover:text-[#EA580C]">
+                               <X className="w-3 h-3" />
+                             </button>
+                           </Badge>
+                         ))}
+                       </div>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Content</label>
+                  <label className="block font-mono text-[10px] uppercase tracking-widest text-[#94A3B8] mb-2 border-t border-math pt-4">Data Payload</label>
                   <Textarea
-                    placeholder="Write your article content here... (Markdown supported)"
-                    value={newArticle.content}
+                    placeholder="Input sequence... (Markdown protocol supported)"
+                    value={newArticle.content || (editingArticle?.content ?? "")}
                     onChange={(e) => setNewArticle({ ...newArticle, content: e.target.value })}
-                    className="min-h-[400px] glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200 resize-none font-mono text-sm"
+                    className="min-h-[400px] bg-black/50 border-0 border-l-2 border-b-2 border-white/10 text-white rounded-none focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.2)] focus-visible:outline-none focus:ring-0 font-mono text-sm leading-relaxed resize-none p-4"
                   />
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Supports Markdown formatting. Use # for headings, ** for bold, * for italic, etc.
+                  <p className="font-mono text-[10px] text-[#F7931A] tracking-widest uppercase mt-4">
+                    > Markdown Support Active.
                   </p>
                 </div>
               </div>
@@ -306,37 +231,37 @@ export function KnowledgeBase() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
-      <div className="glass-nav p-6 border-b border-white/10">
-        <div className="flex items-center justify-between mb-4">
+    <div className="flex-1 flex flex-col h-screen font-body relative overflow-hidden">
+      <div className="bg-[#0F1115] p-6 border-b border-math z-10 relative overflow-hidden">
+        <div className="flex items-center justify-between mb-6 relative z-10">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-              Knowledge Base
+            <h1 className="text-3xl font-heading font-bold text-white capitalize tracking-wide bg-gradient-to-r from-[#FFD600] to-[#F7931A] bg-clip-text text-transparent">
+              Truth Base
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
-              Manage your AI training content and support documentation
+            <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-2">
+              Query algorithms and immutable responses
             </p>
           </div>
           <Button
             onClick={() => setIsCreating(true)}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+            className="font-heading tracking-wider uppercase font-bold rounded-full bg-gradient-to-r from-[#EA580C] to-[#F7931A] text-white shadow-bitcoin-primary hover:shadow-bitcoin-primary-hover hover:scale-105 transition-all duration-300 border-0 text-xs px-6 h-10"
           >
             <Plus className="w-4 h-4 mr-2" />
-            New Article
+            Initialize Block
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
+          <div className="relative w-full sm:flex-1">
+            <Search className="absolute left-0 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#94A3B8]" />
             <Input
-              placeholder="Search articles, tags, or content..."
+              placeholder="Search data records..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200"
+              className="pl-8 bg-transparent border-0 border-b-2 border-white/20 rounded-none h-12 text-white placeholder:text-white/30 focus-visible:border-[#F7931A] focus-visible:shadow-[0_10px_20px_-10px_rgba(247,147,26,0.3)] focus-visible:outline-none focus:ring-0 font-mono text-sm uppercase tracking-widest"
             />
           </div>
-          <div className="flex items-center gap-1 glass rounded-lg p-1 border border-white/20 bg-white/10 backdrop-blur-sm">
+          <div className="flex items-center gap-1 bg-black/40 border border-math rounded-lg p-1 w-full sm:w-auto overflow-x-auto hide-scrollbar">
             {categories.map((category) => (
               <Button
                 key={category}
@@ -344,10 +269,10 @@ export function KnowledgeBase() {
                 size="sm"
                 onClick={() => setSelectedCategory(category)}
                 className={cn(
-                  "h-8 px-3 text-xs font-medium transition-all duration-200",
+                  "h-8 px-4 text-[10px] font-mono tracking-widest uppercase transition-all duration-300 rounded whitespace-nowrap",
                   selectedCategory === category
-                    ? "bg-white/20 text-slate-900 dark:text-white shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-white/10",
+                    ? "bg-[#EA580C]/20 text-[#F7931A] shadow-gold-accent"
+                    : "text-[#94A3B8] hover:bg-white/10 hover:text-white",
                 )}
               >
                 {category}
@@ -357,111 +282,115 @@ export function KnowledgeBase() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 z-10 relative">
         <div className="max-w-6xl mx-auto">
+           {isLoading ? (
+               <div className="text-center py-20 font-mono text-[#94A3B8] uppercase tracking-widest flex justify-center items-center gap-3">
+                  <Cpu className="w-6 h-6 animate-pulse text-[#FFD600]" /> Querying Data Nodes...
+               </div>
+           ) : filteredArticles.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {filteredArticles.map((article) => (
+            {filteredArticles.map((article: any) => (
               <div
                 key={article.id}
-                className="glass-card p-6 rounded-xl border-0 shadow-lg hover:shadow-xl transition-all duration-200"
+                className="crypto-block group cursor-pointer"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 border border-[#F7931A]/30 bg-[#F7931A]/10 rounded-lg flex items-center justify-center">
+                      <BookOpen className="w-5 h-5 text-[#F7931A]" />
                     </div>
                     <div>
                       <Badge
                         variant="outline"
-                        className="text-xs border-blue-500/30 text-blue-600 dark:text-blue-400 mb-1"
+                        className="text-[10px] font-mono tracking-widest uppercase border-[#FFD600]/30 text-[#FFD600] rounded-sm bg-[#FFD600]/5 mb-1"
                       >
                         {article.category}
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:glass hover:bg-white/10">
-                      <Eye className="w-3 h-3" />
+                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-[#94A3B8] hover:text-[#FFD600] bg-transparent border-0 hover:bg-transparent">
+                      <Eye className="w-4 h-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditingArticle(article)}
-                      className="h-8 w-8 p-0 hover:glass hover:bg-white/10"
+                      className="h-8 w-8 p-0 text-[#94A3B8] hover:text-[#F7931A] bg-transparent border-0 hover:bg-transparent"
                     >
-                      <Edit3 className="w-3 h-3" />
+                      <Edit3 className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:glass hover:bg-white/10">
-                      <Trash2 className="w-3 h-3" />
+                    <Button variant="ghost" size="sm" onClick={() => deleteArticle(article.id)} className="h-8 w-8 p-0 text-[#94A3B8] hover:text-red-500 bg-transparent border-0 hover:bg-transparent">
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
 
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-balance line-clamp-2">
+                <h3 className="font-heading font-medium text-white mb-3 text-balance tracking-wide uppercase line-clamp-2">
                   {article.title}
                 </h3>
 
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-3 text-pretty">
+                <p className="text-sm text-[#94A3B8] font-body mb-6 line-clamp-3 leading-relaxed">
                   {article.content.replace(/[#*]/g, "").substring(0, 150)}...
                 </p>
 
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {article.tags.slice(0, 3).map((tag) => (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {(article.tags || []).slice(0, 3).map((tag: string) => (
                     <Badge
                       key={tag}
-                      variant="secondary"
-                      className="text-xs bg-slate-500/20 text-slate-700 dark:text-slate-300 border-0"
+                      variant="outline"
+                      className="text-[9px] font-mono tracking-widest uppercase border-white/20 text-[#94A3B8] rounded"
                     >
-                      <Tag className="w-2 h-2 mr-1" />
+                      <Tag className="w-2 h-2 mr-1 opacity-50" />
                       {tag}
                     </Badge>
                   ))}
-                  {article.tags.length > 3 && (
+                  {(article.tags || []).length > 3 && (
                     <Badge
-                      variant="secondary"
-                      className="text-xs bg-slate-500/20 text-slate-700 dark:text-slate-300 border-0"
+                      variant="outline"
+                      className="text-[9px] font-mono tracking-widest uppercase border-white/20 text-[#94A3B8] rounded"
                     >
-                      +{article.tags.length - 3}
+                      +{(article.tags || []).length - 3}
                     </Badge>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center justify-between font-mono text-[9px] text-[#94A3B8] uppercase tracking-wider border-t border-math pt-3 group-hover:border-[#EA580C]/30 transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1">
-                      <User className="w-3 h-3" />
-                      <span>{article.author}</span>
+                      <User className="w-3 h-3 text-[#EA580C]" />
+                      <span className="truncate max-w-[80px]">{article.author || "Root"}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      <span>{article.views}</span>
+                      <Eye className="w-3 h-3 text-[#FFD600]" />
+                      <span>{article.views || 0}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{article.updatedAt}</span>
+                    <Calendar className="w-3 h-3 text-[#F7931A]" />
+                    <span>{article.updated_at ? new Date(article.updated_at).toLocaleDateString() : ""}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-
-          {filteredArticles.length === 0 && (
-            <div className="text-center py-12">
-              <div className="glass-card p-8 rounded-xl border-0 shadow-lg max-w-md mx-auto">
-                <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">No articles found</h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-4">
+          ) : (
+            <div className="text-center py-20 flex justify-center">
+              <div className="crypto-glass-block max-w-md">
+                <FileText className="w-12 h-12 text-[#1E293B] mx-auto mb-6" />
+                <h3 className="font-heading text-xl font-bold text-white mb-2 uppercase tracking-widest">No Documents Found</h3>
+                <p className="font-mono text-xs text-[#94A3B8] mb-8 leading-relaxed">
                   {searchQuery || selectedCategory !== "All"
-                    ? "Try adjusting your search or filter criteria."
-                    : "Get started by creating your first knowledge base article."}
+                    ? "Adjust search parameters to locate specific blocks."
+                    : "No data mapped. Initialize your first truth document."}
                 </p>
                 <Button
                   onClick={() => setIsCreating(true)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                  className="font-heading tracking-wider uppercase font-bold rounded-full bg-gradient-to-r from-[#EA580C] to-[#F7931A] text-white shadow-bitcoin-primary hover:shadow-bitcoin-primary-hover transition-all duration-300 border-0 h-10 px-6"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Article
+                  Initialize Block
                 </Button>
               </div>
             </div>

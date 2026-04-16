@@ -33,6 +33,7 @@ import {
   Filter,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useEmails } from "@/hooks/useSupabaseData"
 
 // Mock analytics data
 const emailVolumeData = [
@@ -55,72 +56,73 @@ const responseTimeData = [
 ]
 
 const categoryData = [
-  { name: "Technical", value: 35, color: "#3B82F6" },
-  { name: "Sales", value: 28, color: "#10B981" },
-  { name: "Billing", value: 20, color: "#8B5CF6" },
-  { name: "General", value: 12, color: "#F59E0B" },
+  { name: "Technical", value: 35, color: "#F7931A" },
+  { name: "Sales", value: 28, color: "#EA580C" },
+  { name: "Billing", value: 20, color: "#FFD600" },
+  { name: "General", value: 12, color: "#1E293B" },
   { name: "Complaint", value: 5, color: "#EF4444" },
 ]
 
 const confidenceData = [
-  { range: "90-100%", count: 45, color: "#10B981" },
-  { range: "80-89%", count: 32, color: "#3B82F6" },
-  { range: "70-79%", count: 18, color: "#F59E0B" },
+  { range: "90-100%", count: 45, color: "#FFD600" },
+  { range: "80-89%", count: 32, color: "#F7931A" },
+  { range: "70-79%", count: 18, color: "#EA580C" },
   { range: "60-69%", count: 8, color: "#EF4444" },
 ]
 
 export function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState("7d")
+  const { emails } = useEmails("all")
 
   const metrics = [
     {
-      title: "Total Emails",
-      value: "1,247",
-      change: "+12.5%",
+      title: "Inbound Nodes",
+      value: emails ? emails.length.toString() : "0",
+      change: "Sync Active",
       trend: "up",
       icon: Mail,
-      color: "from-blue-500 to-indigo-500",
+      color: "border-[#F7931A] text-[#F7931A]",
     },
     {
-      title: "Avg Response Time",
+      title: "Avg Resolution",
       value: "24m",
       change: "-8.2%",
       trend: "down",
       icon: Clock,
-      color: "from-emerald-500 to-teal-500",
+      color: "border-[#FFD600] text-[#FFD600]",
     },
     {
-      title: "AI Confidence",
+      title: "Consensus Weight",
       value: "87.3%",
       change: "+3.1%",
       trend: "up",
       icon: Zap,
-      color: "from-purple-500 to-pink-500",
+      color: "border-[#EA580C] text-[#EA580C]",
     },
     {
-      title: "Resolution Rate",
+      title: "Block Finality",
       value: "94.2%",
       change: "+1.8%",
       trend: "up",
       icon: Target,
-      color: "from-orange-500 to-red-500",
+      color: "border-[#10B981] text-[#10B981]",
     },
   ]
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
-      <div className="glass-nav p-6 border-b border-white/10">
+    <div className="flex-1 flex flex-col h-screen font-body relative overflow-hidden">
+      <div className="bg-[#0F1115] p-6 border-b border-math z-10">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-              Analytics Dashboard
+            <h1 className="text-3xl font-heading font-bold text-white capitalize tracking-wide bg-gradient-to-r from-[#EA580C] to-[#FFD600] bg-clip-text text-transparent">
+              Network Telemetry
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
-              Monitor your AI communication performance and insights
+            <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-2">
+              Real-time consensus metrics and node health
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 glass rounded-lg p-1 border border-white/20 bg-white/10 backdrop-blur-sm">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 bg-black/40 border border-math rounded-lg p-1">
               {["24h", "7d", "30d", "90d"].map((range) => (
                 <Button
                   key={range}
@@ -128,50 +130,51 @@ export function AnalyticsDashboard() {
                   size="sm"
                   onClick={() => setTimeRange(range)}
                   className={cn(
-                    "h-8 px-3 text-xs font-medium transition-all duration-200",
+                    "h-8 px-4 text-[10px] font-mono tracking-widest uppercase transition-all duration-300 rounded",
                     timeRange === range
-                      ? "bg-white/20 text-slate-900 dark:text-white shadow-sm"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-white/10",
+                      ? "bg-[#EA580C]/20 text-[#F7931A] shadow-gold-accent"
+                      : "text-[#94A3B8] hover:bg-white/10 hover:text-white",
                   )}
                 >
                   {range}
                 </Button>
               ))}
             </div>
-            <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
+            <Button variant="outline" size="sm" className="font-heading uppercase tracking-widest text-[#94A3B8] bg-transparent border-math hover:border-[#F7931A] hover:text-white text-xs h-10 px-4">
+              <Filter className="w-3 h-3 mr-2" />
+              Filter Array
             </Button>
-            <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-              <Calendar className="w-4 h-4 mr-2" />
-              Export
+            <Button variant="outline" size="sm" className="font-heading uppercase tracking-widest text-[#94A3B8] bg-transparent border-math hover:border-[#FFD600] hover:text-white text-xs h-10 px-4">
+              <Calendar className="w-3 h-3 mr-2" />
+              Export Hash
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-6 z-10">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {metrics.map((metric) => (
-              <div key={metric.title} className="glass-card p-6 rounded-xl border-0 shadow-lg">
+              <div key={metric.title} className="crypto-glass-block overflow-hidden relative group">
+                <div className="absolute top-0 right-0 w-12 h-12 border-t border-r border-white/5 pointer-events-none group-hover:border-[#F7931A]/30 transition-colors"></div>
                 <div className="flex items-center justify-between mb-4">
                   <div
                     className={cn(
-                      "w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br",
+                      "w-10 h-10 rounded-lg flex items-center justify-center border bg-black/40 shadow-bitcoin-primary",
                       metric.color,
                     )}
                   >
-                    <metric.icon className="w-6 h-6 text-white" />
+                    <metric.icon className="w-5 h-5" />
                   </div>
                   <Badge
                     variant="outline"
                     className={cn(
-                      "text-xs border-0 font-medium",
+                      "text-[10px] font-mono tracking-widest uppercase rounded-sm border-0",
                       metric.trend === "up"
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                        : "bg-red-500/10 text-red-600 dark:text-red-400",
+                        ? "bg-[#FFD600]/10 text-[#FFD600]"
+                        : "bg-red-900/40 text-red-400",
                     )}
                   >
                     {metric.trend === "up" ? (
@@ -183,8 +186,8 @@ export function AnalyticsDashboard() {
                   </Badge>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{metric.value}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{metric.title}</p>
+                  <h3 className="font-heading text-3xl font-bold text-white mb-1 shadow-gold-accent">{metric.value}</h3>
+                  <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase">{metric.title}</p>
                 </div>
               </div>
             ))}
@@ -193,109 +196,108 @@ export function AnalyticsDashboard() {
           {/* Charts Row 1 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Email Volume Chart */}
-            <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
+            <div className="crypto-block">
+              <div className="flex items-center justify-between mb-6 border-b border-math pb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Email Volume</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Daily email processing overview</p>
+                  <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest">Transaction Volume</h3>
+                  <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-1">Daily block processing</p>
                 </div>
-                <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-4 text-[10px] font-mono tracking-widest uppercase">
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Received</span>
+                    <div className="w-2 h-2 bg-[#F7931A]"></div>
+                    <span className="text-[#94A3B8]">Inbound</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Processed</span>
+                    <div className="w-2 h-2 bg-[#EA580C]"></div>
+                    <span className="text-[#94A3B8]">Processed</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Responded</span>
+                    <div className="w-2 h-2 bg-[#FFD600]"></div>
+                    <span className="text-[#94A3B8]">Exported</span>
                   </div>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={emailVolumeData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                  <XAxis dataKey="date" stroke="rgba(148, 163, 184, 0.5)" fontSize={12} />
-                  <YAxis stroke="rgba(148, 163, 184, 0.5)" fontSize={12} />
+                  <defs>
+                    <linearGradient id="colorReceived" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#F7931A" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#F7931A" stopOpacity={0}/>
+                    </linearGradient>
+                    <linearGradient id="colorProcessed" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#EA580C" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#EA580C" stopOpacity={0}/>
+                    </linearGradient>
+                     <linearGradient id="colorResponded" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#FFD600" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#FFD600" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
+                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={10} fontFamily="JetBrains Mono" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={10} fontFamily="JetBrains Mono" tickLine={false} axisLine={false} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      backdropFilter: "blur(12px)",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      borderRadius: "8px",
-                      color: "#1e293b",
+                      backgroundColor: "#0F1115",
+                      border: "1px solid rgba(247, 147, 26, 0.3)",
+                      borderRadius: "0px",
+                      color: "#fff",
+                      fontFamily: "JetBrains Mono",
+                      fontSize: "12px",
+                      textTransform: "uppercase"
                     }}
+                    itemStyle={{ color: "#F7931A" }}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="received"
-                    stackId="1"
-                    stroke="#3B82F6"
-                    fill="#3B82F6"
-                    fillOpacity={0.3}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="processed"
-                    stackId="1"
-                    stroke="#10B981"
-                    fill="#10B981"
-                    fillOpacity={0.3}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="responded"
-                    stackId="1"
-                    stroke="#8B5CF6"
-                    fill="#8B5CF6"
-                    fillOpacity={0.3}
-                  />
+                  <Area type="step" dataKey="received" stroke="#F7931A" strokeWidth={2} fillOpacity={1} fill="url(#colorReceived)" />
+                  <Area type="step" dataKey="processed" stroke="#EA580C" strokeWidth={2} fillOpacity={1} fill="url(#colorProcessed)" />
+                  <Area type="step" dataKey="responded" stroke="#FFD600" strokeWidth={2} fillOpacity={1} fill="url(#colorResponded)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
             {/* Response Time Chart */}
-            <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
+            <div className="crypto-block">
+              <div className="flex items-center justify-between mb-6 border-b border-math pb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Response Time</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Average response time by hour</p>
+                  <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest">Network Latency</h3>
+                  <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-1">Average consensus time by block</p>
                 </div>
                 <Badge
                   variant="outline"
-                  className="text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                  className="font-mono text-[10px] uppercase tracking-widest border-[#FFD600]/30 text-[#FFD600] rounded-sm bg-[#FFD600]/10"
                 >
-                  Target: 30min
+                  Benchmark: 30min
                 </Badge>
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={responseTimeData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                  <XAxis dataKey="hour" stroke="rgba(148, 163, 184, 0.5)" fontSize={12} />
-                  <YAxis stroke="rgba(148, 163, 184, 0.5)" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
+                  <XAxis dataKey="hour" stroke="#94A3B8" fontSize={10} fontFamily="JetBrains Mono" tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={10} fontFamily="JetBrains Mono" tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      backdropFilter: "blur(12px)",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      borderRadius: "8px",
-                      color: "#1e293b",
+                     contentStyle={{
+                      backgroundColor: "#0F1115",
+                      border: "1px solid rgba(247, 147, 26, 0.3)",
+                      borderRadius: "0px",
+                      color: "#fff",
+                      fontFamily: "JetBrains Mono",
+                      fontSize: "12px",
+                      textTransform: "uppercase"
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="avgTime"
-                    stroke="#3B82F6"
+                    stroke="#FFD600"
                     strokeWidth={3}
-                    dot={{ fill: "#3B82F6", strokeWidth: 2, r: 4 }}
+                    dot={{ fill: "#FFD600", strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: "#EA580C" }}
                   />
                   <Line
-                    type="monotone"
+                    type="step"
                     dataKey="target"
-                    stroke="#10B981"
-                    strokeWidth={2}
+                    stroke="#F7931A"
+                    strokeWidth={1}
                     strokeDasharray="5 5"
                     dot={false}
                   />
@@ -307,11 +309,11 @@ export function AnalyticsDashboard() {
           {/* Charts Row 2 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Category Distribution */}
-            <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
+            <div className="crypto-glass-block">
+              <div className="flex items-center justify-between mb-6 border-b border-math pb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Email Categories</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Distribution by category type</p>
+                  <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest">Data Routing Map</h3>
+                  <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-1">Distribution by classification</p>
                 </div>
               </div>
               <div className="flex items-center gap-8">
@@ -321,35 +323,38 @@ export function AnalyticsDashboard() {
                       data={categoryData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      paddingAngle={2}
+                      innerRadius={70}
+                      outerRadius={90}
+                      paddingAngle={5}
                       dataKey="value"
+                      stroke="none"
                     >
                       {categoryData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip
-                      contentStyle={{
-                        backgroundColor: "rgba(255, 255, 255, 0.1)",
-                        backdropFilter: "blur(12px)",
-                        border: "1px solid rgba(255, 255, 255, 0.2)",
-                        borderRadius: "8px",
-                        color: "#1e293b",
+                       contentStyle={{
+                        backgroundColor: "#0F1115",
+                        border: "1px solid rgba(247, 147, 26, 0.3)",
+                        borderRadius: "0px",
+                        color: "#fff",
+                        fontFamily: "JetBrains Mono",
+                        fontSize: "12px",
+                        textTransform: "uppercase"
                       }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex-1 space-y-3">
+                <div className="flex-1 space-y-4">
                   {categoryData.map((category) => (
-                    <div key={category.name} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }}></div>
-                        <span className="text-sm text-slate-700 dark:text-slate-300">{category.name}</span>
+                    <div key={category.name} className="flex items-center justify-between border-b border-white/5 pb-2">
+                       <div className="flex items-center gap-3">
+                        <div className="w-2 h-2" style={{ backgroundColor: category.color }}></div>
+                        <span className="font-mono text-[10px] uppercase tracking-widest text-[#94A3B8]">{category.name}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-sm font-medium text-slate-900 dark:text-white">{category.value}%</span>
+                        <span className="font-heading font-bold text-white">{category.value}%</span>
                       </div>
                     </div>
                   ))}
@@ -358,72 +363,81 @@ export function AnalyticsDashboard() {
             </div>
 
             {/* AI Confidence Distribution */}
-            <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-              <div className="flex items-center justify-between mb-6">
+            <div className="crypto-glass-block">
+              <div className="flex items-center justify-between mb-6 border-b border-math pb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">AI Confidence Scores</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">Distribution of AI response confidence</p>
+                  <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest">Network Consensus</h3>
+                  <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase mt-1">Distribution of model validation</p>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={confidenceData} layout="horizontal">
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.1)" />
-                  <XAxis type="number" stroke="rgba(148, 163, 184, 0.5)" fontSize={12} />
-                  <YAxis dataKey="range" type="category" stroke="rgba(148, 163, 184, 0.5)" fontSize={12} width={60} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
+                  <XAxis type="number" stroke="#94A3B8" fontSize={10} fontFamily="JetBrains Mono" tickLine={false} axisLine={false} />
+                  <YAxis dataKey="range" type="category" stroke="#94A3B8" fontSize={10} fontFamily="JetBrains Mono" width={60} tickLine={false} axisLine={false} />
                   <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      backdropFilter: "blur(12px)",
-                      border: "1px solid rgba(255, 255, 255, 0.2)",
-                      borderRadius: "8px",
-                      color: "#1e293b",
+                     contentStyle={{
+                      backgroundColor: "#0F1115",
+                      border: "1px solid rgba(247, 147, 26, 0.3)",
+                      borderRadius: "0px",
+                      color: "#fff",
+                      fontFamily: "JetBrains Mono",
+                      fontSize: "12px",
+                      textTransform: "uppercase"
                     }}
+                    cursor={{fill: 'rgba(247, 147, 26, 0.1)'}}
                   />
-                  <Bar dataKey="count" fill="#3B82F6" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="count" fill="#F7931A" radius={[0, 4, 4, 0]}>
+                    {
+                      confidenceData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))
+                    }
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Performance Insights */}
-          <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4 text-white" />
+          <div className="crypto-glass-block border-[#FFD600]/30 shadow-[0_0_30px_-5px_rgba(255,214,0,0.1)]">
+            <div className="flex items-center gap-3 mb-6 border-b border-math pb-4">
+              <div className="w-10 h-10 border border-[#FFD600]/50 bg-[#FFD600]/10 rounded-lg flex items-center justify-center shadow-gold-accent">
+                <AlertTriangle className="w-5 h-5 text-[#FFD600]" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Performance Insights</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">AI-generated recommendations and alerts</p>
+                <h3 className="font-heading text-lg font-bold text-white uppercase tracking-widest">System Telemetry Output</h3>
+                <p className="font-mono text-[10px] text-[#FFD600] tracking-widest uppercase mt-1">Algorithmic recommendations broadcasted</p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                    Excellent Performance
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="p-4 bg-black/40 border border-math hover:border-[#FFD600]/50 transition-colors">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle2 className="w-4 h-4 text-[#FFD600]" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-white">
+                    Latency Optimized
                   </span>
                 </div>
-                <p className="text-xs text-emerald-800 dark:text-emerald-200">
-                  Response times are 15% below target this week. Great work!
+                <p className="text-sm font-body text-[#94A3B8] leading-relaxed">
+                  Execution times are 15% below threshold configuration. System nominal.
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Peak Hours</span>
+              <div className="p-4 bg-black/40 border border-math hover:border-[#EA580C]/50 transition-colors">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4 text-[#EA580C]" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-[#EA580C]">Compute Spike Detected</span>
                 </div>
-                <p className="text-xs text-blue-800 dark:text-blue-200">
-                  Highest email volume between 12-4 PM. Consider additional staffing.
+                <p className="text-sm font-body text-[#94A3B8] leading-relaxed">
+                  Elevated block confirmations required between index 1200-1600.
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20 backdrop-blur-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-medium text-purple-700 dark:text-purple-300">AI Improvement</span>
+              <div className="p-4 bg-black/40 border border-math hover:border-[#F7931A]/50 transition-colors">
+                <div className="flex items-center gap-2 mb-3">
+                  <Zap className="w-4 h-4 text-[#F7931A]" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-[#F7931A]">Validation Improved</span>
                 </div>
-                <p className="text-xs text-purple-800 dark:text-purple-200">
-                  Technical category confidence increased by 8% this month.
+                <p className="text-sm font-body text-[#94A3B8] leading-relaxed">
+                  Heuristic certainty coefficient increased by 0.08 points.
                 </p>
               </div>
             </div>

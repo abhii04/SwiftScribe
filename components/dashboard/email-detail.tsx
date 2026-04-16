@@ -31,284 +31,217 @@ interface EmailDetailProps {
   onBack: () => void
 }
 
-// Mock email data
-const mockEmailDetail = {
-  id: "1",
-  sender: "Sarah Johnson",
-  senderEmail: "sarah@techcorp.com",
-  recipient: "support@aiassistant.com",
-  subject: "Urgent: Server downtime affecting production",
-  timestamp: "Today at 2:45 PM",
-  priority: "urgent",
-  category: "technical",
-  status: "unread",
-  isStarred: true,
-  body: `Hi Support Team,
+import { useEmail } from "@/hooks/useSupabaseData"
 
-We're experiencing critical server issues that are impacting our production environment. The main database server went down at 2:30 PM EST and we're unable to access our customer data.
-
-This is affecting approximately 10,000 active users and we're losing revenue by the minute. Our internal team has tried the following:
-
-1. Restarted the database service
-2. Checked network connectivity
-3. Reviewed error logs (attached)
-4. Attempted failover to backup server
-
-None of these steps have resolved the issue. We need immediate assistance as this is a P1 incident for our business.
-
-Please prioritize this request and let us know the next steps.
-
-Best regards,
-Sarah Johnson
-Senior DevOps Engineer
-TechCorp Solutions`,
-  aiSummary:
-    "Critical server outage requiring immediate attention. Database server failure at 2:30 PM EST affecting production environment and 10,000 users. Customer has attempted basic troubleshooting without success.",
-  aiResponses: [
-    {
-      id: "1",
-      content: `Hi Sarah,
-
-Thank you for reaching out about this critical issue. I understand the urgency and impact on your production environment.
-
-I'm immediately escalating this to our Level 3 support team and our on-call database specialist. Here's what we're doing right now:
-
-1. **Immediate Actions (Next 15 minutes)**:
-   - Assigning our senior database engineer to your case
-   - Reviewing your server logs and configuration
-   - Preparing emergency diagnostic tools
-
-2. **Next Steps**:
-   - Our engineer will contact you directly at this email within 15 minutes
-   - We'll schedule an emergency screen share session to diagnose the issue
-   - If needed, we'll deploy our rapid response team for hands-on assistance
-
-**Case Priority**: P1 - Critical
-**Estimated Response Time**: 15 minutes
-**Case Number**: #URGENT-2024-001
-
-I'll personally monitor this case until resolution. You can reach me directly at my mobile: +1-555-0199 for immediate updates.
-
-Best regards,
-Alex Chen
-Senior Support Manager
-AI Assistant Support Team`,
-      confidence: 0.95,
-      tone: "professional",
-      category: "urgent_response",
-    },
-    {
-      id: "2",
-      content: `Hello Sarah,
-
-I've received your urgent report about the database server outage affecting your production environment. This is indeed a critical situation that requires immediate attention.
-
-**Immediate Response Plan:**
-
-🚨 **Priority Level**: P1 Critical
-📞 **Direct Contact**: Our database specialist will call you within 10 minutes
-⏰ **ETA for Resolution**: 2-4 hours maximum
-
-**What we're doing now:**
-- Activating our emergency response protocol
-- Assigning our top database recovery specialist
-- Preparing remote diagnostic access
-- Alerting our infrastructure team
-
-**What we need from you:**
-- Confirmation of your direct phone number for immediate contact
-- Remote access credentials (we'll send secure link)
-- Any recent changes made to your system in the last 48 hours
-
-I'm personally overseeing this case. My direct line is +1-555-0199.
-
-We'll have you back online as quickly as possible.
-
-Alex Chen
-Senior Support Manager`,
-      confidence: 0.88,
-      tone: "urgent",
-      category: "emergency_response",
-    },
-  ],
-}
+const mockAiResponses = [
+  {
+    id: "1",
+    content: "Request acknowledged. Validation in progress.",
+    confidence: 0.95,
+    tone: "professional",
+  },
+  {
+    id: "2",
+    content: "Incident escalated to Node Security operators.",
+    confidence: 0.88,
+    tone: "urgent",
+  }
+]
 
 export function EmailDetail({ emailId, onBack }: EmailDetailProps) {
   const [selectedResponse, setSelectedResponse] = useState<string | null>(null)
   const [customResponse, setCustomResponse] = useState("")
   const [isEditing, setIsEditing] = useState(false)
+  
+  const { email, isLoading } = useEmail(emailId)
+
+  if (isLoading) {
+    return <div className="flex-1 flex items-center justify-center h-screen font-mono text-[#94A3B8] tracking-widest uppercase">Decoupling Data Block...</div>
+  }
+
+  if (!email) {
+    return <div className="flex-1 flex items-center justify-center h-screen font-mono text-red-500 tracking-widest uppercase">Entity Not Resolved.</div>
+  }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent":
-        return "bg-red-500"
+        return "bg-red-900 border border-red-500 text-red-500"
       case "high":
-        return "bg-orange-500"
+        return "bg-[#EA580C]/20 border border-[#EA580C] text-[#EA580C]"
       case "medium":
-        return "bg-yellow-500"
+        return "bg-[#FFD600]/20 border border-[#FFD600] text-[#FFD600]"
       case "low":
-        return "bg-green-500"
+        return "bg-emerald-900 border border-emerald-500 text-emerald-500"
       default:
-        return "bg-gray-500"
+        return "bg-[#1E293B] border border-white/20 text-[#94A3B8]"
     }
   }
 
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "technical":
-        return "bg-blue-500"
+        return "bg-blue-900 text-blue-400 border border-blue-500"
       case "billing":
-        return "bg-purple-500"
+        return "bg-[#FFD600]/10 text-[#FFD600] border border-[#FFD600]"
       case "sales":
-        return "bg-emerald-500"
+        return "bg-emerald-900 text-emerald-400 border border-emerald-500"
       case "complaint":
-        return "bg-red-500"
+        return "bg-red-900 text-red-400 border border-red-500"
       default:
-        return "bg-gray-500"
+        return "bg-[#1E293B] text-[#94A3B8] border border-white/20"
     }
   }
 
   return (
-    <div className="flex-1 flex flex-col h-screen">
+    <div className="flex-1 flex flex-col h-screen font-body relative overflow-hidden">
+      
       {/* Header */}
-      <div className="glass-nav p-4 border-b border-white/10">
+      <div className="bg-[#0F1115] p-6 border-b border-math z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={onBack} className="hover:glass hover:bg-white/10">
+            <Button variant="ghost" size="sm" onClick={onBack} className="font-heading uppercase tracking-widest text-[#94A3B8] hover:text-white border-math bg-transparent hover:border-[#F7931A]">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
+              Return
             </Button>
             <div className="flex items-center gap-2">
               <Badge
-                variant="secondary"
-                className={cn("text-xs text-white border-0", getPriorityColor(mockEmailDetail.priority))}
+                variant="outline"
+                className={cn("text-[10px] uppercase font-mono tracking-widest rounded-sm", getPriorityColor(email.priority || 'medium'))}
               >
-                {mockEmailDetail.priority}
+                {email.priority || 'medium'}
               </Badge>
               <Badge
-                variant="secondary"
-                className={cn("text-xs text-white border-0", getCategoryColor(mockEmailDetail.category))}
+                variant="outline"
+                className={cn("text-[10px] uppercase font-mono tracking-widest rounded-sm", getCategoryColor(email.category || 'general'))}
               >
-                {mockEmailDetail.category}
+                {email.category || 'general'}
               </Badge>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hover:glass hover:bg-white/10">
-              <Star className={cn("w-4 h-4", mockEmailDetail.isStarred && "text-yellow-500 fill-current")} />
+            <Button variant="ghost" size="sm" className="text-[#94A3B8] hover:text-[#FFD600] border-math bg-transparent">
+              <Star className={cn("w-4 h-4", email.is_starred && "text-[#FFD600] fill-current")} />
             </Button>
-            <Button variant="ghost" size="sm" className="hover:glass hover:bg-white/10">
+            <Button variant="ghost" size="sm" className="text-[#94A3B8] hover:text-[#EA580C] border-math bg-transparent">
               <Archive className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="hover:glass hover:bg-white/10">
+            <Button variant="ghost" size="sm" className="text-[#94A3B8] hover:text-red-500 border-math bg-transparent">
               <Trash2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" className="hover:glass hover:bg-white/10">
+            <Button variant="ghost" size="sm" className="text-[#94A3B8] hover:text-white border-math bg-transparent">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto z-10 relative">
+        <div className="max-w-4xl mx-auto p-8 space-y-8">
           {/* Email Header */}
-          <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-            <div className="flex items-start justify-between mb-4">
+          <div className="crypto-glass-block relative">
+            <div className="absolute top-0 right-0 w-16 h-16 border-t border-r border-white/5 pointer-events-none"></div>
+            
+            <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
-                <Avatar className="w-12 h-12">
-                  <AvatarFallback className="bg-gradient-to-br from-slate-400 to-slate-600 text-white">
+                <Avatar className="w-12 h-12 border border-[#F7931A]/30">
+                  <AvatarFallback className="bg-black/50 text-[#F7931A] font-mono">
                     <User className="w-6 h-6" />
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h2 className="font-semibold text-slate-900 dark:text-white">{mockEmailDetail.sender}</h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{mockEmailDetail.senderEmail}</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">to {mockEmailDetail.recipient}</p>
+                  <h2 className="font-heading font-semibold text-white tracking-widest uppercase">{email.sender}</h2>
+                  <p className="font-mono text-[10px] text-[#94A3B8] tracking-widest uppercase">{email.sender_email}</p>
+                  <p className="font-mono text-[10px] text-[#F7931A] tracking-widest uppercase mt-1">To: {email.recipient || "root@system.local"}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-sm text-slate-600 dark:text-slate-400">{mockEmailDetail.timestamp}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Clock className="w-3 h-3 text-slate-400" />
-                  <span className="text-xs text-slate-400">Unread</span>
+                <p className="font-mono text-xs text-[#94A3B8] tracking-wider uppercase">
+                  {email.timestamp ? new Date(email.timestamp).toLocaleString() : ""}
+                </p>
+                <div className="flex items-center gap-2 mt-2 justify-end">
+                  <Clock className="w-3 h-3 text-[#F7931A]" />
+                  <span className="font-mono text-[10px] text-[#F7931A] uppercase tracking-widest">{email.status}</span>
                 </div>
               </div>
             </div>
 
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-4 text-balance">
-              {mockEmailDetail.subject}
+            <h1 className="font-heading text-2xl font-bold text-white mb-6 uppercase tracking-wide border-b border-math pb-4">
+              {email.subject}
             </h1>
 
-            <div className="prose prose-sm max-w-none text-slate-700 dark:text-slate-300">
-              <div className="whitespace-pre-wrap text-pretty">{mockEmailDetail.body}</div>
+            <div className="prose prose-sm max-w-none text-[#94A3B8] font-body">
+              <div className="whitespace-pre-wrap leading-relaxed">{email.body || email.preview}</div>
             </div>
           </div>
 
           {/* AI Summary */}
-          <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
+          <div className="crypto-glass-block border-[#F7931A]/30 shadow-[0_0_30px_-5px_rgba(234,88,12,0.1)] relative">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 border border-[#F7931A]/50 bg-[#EA580C]/20 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-[#FFD600]" />
               </div>
-              <h3 className="font-semibold text-slate-900 dark:text-white">AI Analysis</h3>
+              <h3 className="font-heading text-lg font-bold text-white tracking-widest uppercase">System Consensus</h3>
             </div>
-            <p className="text-slate-700 dark:text-slate-300 text-pretty">{mockEmailDetail.aiSummary}</p>
+            <p className="text-[#94A3B8] font-body leading-relaxed">{email.ai_summary || "No consensus derived."}</p>
           </div>
 
           {/* AI Response Suggestions */}
-          <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
+          <div className="crypto-glass-block">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                <Bot className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 border border-[#FFD600]/50 bg-[#FFD600]/10 rounded-lg flex items-center justify-center">
+                <Bot className="w-4 h-4 text-[#FFD600]" />
               </div>
-              <h3 className="font-semibold text-slate-900 dark:text-white">AI Response Suggestions</h3>
+              <h3 className="font-heading text-lg font-bold text-white tracking-widest uppercase">Automated Protocols</h3>
             </div>
 
             <div className="space-y-4">
-              {mockEmailDetail.aiResponses.map((response, index) => (
+              {(email.ai_responses || mockAiResponses).map((response: any, index: number) => (
                 <div
                   key={response.id}
                   className={cn(
-                    "p-4 rounded-lg border-2 cursor-pointer transition-all duration-200",
+                    "p-4 rounded-xl border transition-all duration-300 font-body cursor-pointer relative overflow-hidden group",
                     selectedResponse === response.id
-                      ? "border-blue-500/50 bg-blue-500/10 backdrop-blur-sm"
-                      : "border-white/20 bg-white/5 backdrop-blur-sm hover:border-white/30 hover:bg-white/10",
+                      ? "border-[#F7931A] bg-[#EA580C]/10 shadow-bitcoin-primary"
+                      : "border-math bg-black/30 hover:border-[#F7931A]/50",
                   )}
                   onClick={() => setSelectedResponse(response.id)}
                 >
-                  <div className="flex items-center justify-between mb-3">
+                  {selectedResponse === response.id && <div className="absolute top-0 right-0 w-2 h-full bg-[#F7931A]"></div>}
+                  
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-600 dark:text-blue-400">
-                        Option {index + 1}
+                      <Badge variant="outline" className="font-mono text-[10px] uppercase tracking-widest border-[#F7931A]/30 text-[#F7931A] rounded-sm">
+                        Protocol {index + 1}
                       </Badge>
-                      <Badge
-                        variant="outline"
-                        className="text-xs border-green-500/30 text-green-600 dark:text-green-400"
-                      >
-                        {Math.round(response.confidence * 100)}% confidence
-                      </Badge>
-                      <Badge
-                        variant="outline"
-                        className="text-xs border-purple-500/30 text-purple-600 dark:text-purple-400 capitalize"
-                      >
-                        {response.tone}
-                      </Badge>
+                      {response.confidence && (
+                         <Badge
+                           variant="outline"
+                           className="font-mono text-[10px] uppercase tracking-widest border-[#FFD600]/30 text-[#FFD600] rounded-sm"
+                         >
+                           {Math.round(response.confidence * 100)}% Match
+                         </Badge>
+                      )}
+                      {response.tone && (
+                        <Badge
+                          variant="outline"
+                          className="font-mono text-[10px] uppercase tracking-widest border-white/20 text-[#94A3B8] rounded-sm"
+                        >
+                          {response.tone}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:glass hover:bg-white/10">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#94A3B8] hover:text-[#FFD600]">
                         <ThumbsUp className="w-3 h-3" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:glass hover:bg-white/10">
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-[#94A3B8] hover:text-[#EA580C]">
                         <ThumbsDown className="w-3 h-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:glass hover:bg-white/10">
-                        <Edit3 className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
-                  <div className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-pretty">
+                  <div className="text-sm text-white whitespace-pre-wrap leading-relaxed">
                     {response.content}
                   </div>
                 </div>
@@ -317,22 +250,22 @@ export function EmailDetail({ emailId, onBack }: EmailDetailProps) {
           </div>
 
           {/* Response Editor */}
-          <div className="glass-card p-6 rounded-xl border-0 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-900 dark:text-white">Your Response</h3>
-              <div className="flex items-center gap-2">
+          <div className="crypto-block">
+            <div className="flex items-center justify-between mb-6 border-b border-math pb-4">
+              <h3 className="font-heading text-lg font-bold text-white tracking-widest uppercase">Constructor Interface</h3>
+              <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setIsEditing(!isEditing)}
-                  className="glass border-white/20 bg-white/10 backdrop-blur-sm"
+                  className="font-heading tracking-widest uppercase text-xs border-math bg-transparent text-[#94A3B8] hover:text-white"
                 >
-                  <Edit3 className="w-4 h-4 mr-2" />
-                  {isEditing ? "Preview" : "Edit"}
+                  <Edit3 className="w-3 h-3 mr-2" />
+                  {isEditing ? "Read Only" : "Modify"}
                 </Button>
-                <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-                  <Zap className="w-4 h-4 mr-2" />
-                  Enhance with AI
+                <Button variant="outline" size="sm" className="font-heading tracking-widest uppercase text-xs border border-[#F7931A]/50 bg-[#F7931A]/10 text-[#F7931A] hover:bg-[#F7931A]/20">
+                  <Zap className="w-3 h-3 mr-2 text-[#FFD600]" />
+                  Compute Hash
                 </Button>
               </div>
             </div>
@@ -340,41 +273,37 @@ export function EmailDetail({ emailId, onBack }: EmailDetailProps) {
             <Textarea
               placeholder={
                 selectedResponse
-                  ? "Selected AI response will appear here. You can edit it before sending."
-                  : "Write your response here, or select an AI suggestion above..."
+                  ? "Selected protocol loaded. Awaiting modification..."
+                  : "Input transaction parameters or select protocol above..."
               }
               value={
                 selectedResponse
-                  ? mockEmailDetail.aiResponses.find((r) => r.id === selectedResponse)?.content || ""
+                  ? (email.ai_responses || mockAiResponses).find((r: any) => r.id === selectedResponse)?.content || ""
                   : customResponse
               }
               onChange={(e) => setCustomResponse(e.target.value)}
-              className="min-h-[200px] glass border-white/20 bg-white/10 backdrop-blur-sm focus:bg-white/20 transition-all duration-200 resize-none"
+              className="min-h-[200px] bg-black/50 border-0 border-l-2 border-b-2 border-white/10 rounded-none text-white focus-visible:border-[#F7931A] focus-visible:ring-0 focus-visible:outline-none font-mono text-sm leading-relaxed"
             />
 
-            <div className="flex items-center justify-between mt-4">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-                  <Reply className="w-4 h-4 mr-2" />
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t border-math gap-4">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="font-heading uppercase tracking-widest text-[#94A3B8] bg-transparent border-math hover:border-white/40 hover:text-white text-xs">
+                  <Reply className="w-3 h-3 mr-2" />
                   Reply
                 </Button>
-                <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-                  <ReplyAll className="w-4 h-4 mr-2" />
-                  Reply All
-                </Button>
-                <Button variant="outline" size="sm" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-                  <Forward className="w-4 h-4 mr-2" />
-                  Forward
+                <Button variant="outline" size="sm" className="font-heading uppercase tracking-widest text-[#94A3B8] bg-transparent border-math hover:border-white/40 hover:text-white text-xs">
+                  <Forward className="w-3 h-3 mr-2" />
+                  Proxy
                 </Button>
               </div>
 
-              <div className="flex items-center gap-2">
-                <Button variant="outline" className="glass border-white/20 bg-white/10 backdrop-blur-sm">
-                  Save Draft
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <Button variant="outline" className="font-heading uppercase tracking-widest text-[#94A3B8] bg-transparent border-math hover:border-white/40 hover:text-white text-xs h-[44px]">
+                  Store Block
                 </Button>
-                <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+                <Button className="font-heading tracking-wider uppercase font-bold rounded-full bg-gradient-to-r from-[#EA580C] to-[#F7931A] text-white shadow-bitcoin-primary hover:shadow-bitcoin-primary-hover hover:scale-105 transition-all duration-300 border-0 h-[44px] px-6">
                   <Send className="w-4 h-4 mr-2" />
-                  Send Response
+                  Broadcast
                 </Button>
               </div>
             </div>
